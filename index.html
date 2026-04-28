@@ -228,108 +228,149 @@
 </footer>
 
 <script>
-    const products = [
-        { id: 1, name: 'Tanta Wawa', price: 10, cat: 'Dulces', unit: 'bolsa', desc: 'Pan tradicional decorado con motivos culturales, elaborado con harina de primera.', img: 'https://i.postimg.cc/VvmhYmhR/tanta-wawa-png.png' },
-        { id: 2, name: 'Pan de Caracol', price: 5, cat: 'Dulces', unit: 'bolsa', desc: 'Masa dulce enrollada con canela y azúcar. Suave y esponjoso.', img: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800' },
-        { id: 3, name: 'Pan de Yuca', price: 8, cat: 'Panes', unit: 'paquete', desc: 'Hecho con almidón de yuca seleccionado y queso fresco regional.', img: 'https://images.unsplash.com/photo-1585478259715-876a6a81fc08?w=800' },
-        { id: 4, name: 'Pan Casero', price: 5, cat: 'Panes', unit: 'bolsa', desc: 'El sabor de casa. Horneado diariamente con ingredientes naturales.', img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800' }
-    ];
+const products = [
+{ id:1,name:'Tanta Wawa',price:10,cat:'Dulces',desc:'Pan tradicional decorado...',img:'https://i.postimg.cc/VvmhYmhR/tanta-wawa-png.png'},
+{ id:2,name:'Pan de Caracol',price:5,cat:'Dulces',desc:'Masa dulce...',img:'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800'},
+{ id:3,name:'Pan de Yuca',price:8,cat:'Panes',desc:'Hecho con almidón...',img:'https://images.unsplash.com/photo-1585478259715-876a6a81fc08?w=800'},
+{ id:4,name:'Pan Casero',price:5,cat:'Panes',desc:'El sabor de casa...',img:'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800'}
+];
 
-    let cart = JSON.parse(localStorage.getItem('cart_ladelicia')) || [];
-    let currentId = null;
+let cart = JSON.parse(localStorage.getItem('cart_ladelicia')) || [];
+let currentId = null;
 
-    function render(list) {
-        const grid = document.getElementById('productGrid');
-        grid.innerHTML = list.map(p => `
-            <div class="card">
-                <div onclick="openDetails(${p.id})">
-                    <img src="${p.img}">
-                    <div class="card-content">
-                        <h4>${p.name}</h4>
-                        <p class="card-price">Bs. ${p.price.toFixed(2)}</p>
-                    </div>
-                </div>
-                <div style="padding:0 8px 10px;">
-                    <div class="qty-controls">
-                        <button class="qty-btn" onclick="uQty(${p.id},-1)">-</button>
-                        <span id="q-${p.id}" style="font-weight:700; font-size:0.8rem;">1</span>
-                        <button class="qty-btn" onclick="uQty(${p.id},1)">+</button>
-                    </div>
-                    <button class="add-btn" onclick="addToCart(${p.id})">Añadir</button>
-                </div>
-            </div>
-        `).join('');
-    }
+function render(list){
+const grid=document.getElementById('productGrid');
+if(!grid) return;
 
-    function uQty(id, d) {
-        const s = document.getElementById(`q-${id}`);
-        if(s) s.innerText = Math.max(1, parseInt(s.innerText) + d);
-    }
+grid.innerHTML=list.map(p=>`
+<div class="card">
+<div onclick="openDetails(${p.id})">
+<img src="${p.img}" onerror="this.src='https://via.placeholder.com/300'">
+<div class="card-content">
+<h4>${p.name}</h4>
+<p class="card-price">Bs. ${p.price.toFixed(2)}</p>
+</div>
+</div>
+<div style="padding:0 8px 10px;">
+<div class="qty-controls">
+<button class="qty-btn" onclick="uQty(${p.id},-1)">-</button>
+<span id="q-${p.id}">1</span>
+<button class="qty-btn" onclick="uQty(${p.id},1)">+</button>
+</div>
+<button class="add-btn" onclick="addToCart(${p.id})">Añadir</button>
+</div>
+</div>
+`).join('');
+}
 
-    function openDetails(id) {
-        const p = products.find(x => x.id === id);
-        currentId = id;
-        document.getElementById('modalImg').src = p.img;
-        document.getElementById('modalTitle').innerText = p.name;
-        document.getElementById('modalDesc').innerText = p.desc;
-        document.getElementById('modalPrice').innerText = 'Bs. ' + p.price.toFixed(2);
-        document.getElementById('descModal').classList.add('active');
-    }
+function uQty(id,d){
+const el=document.getElementById(`q-${id}`);
+if(!el) return;
+let val=parseInt(el.innerText)||1;
+val=Math.max(1,val+d);
+el.innerText=val;
+}
 
-    function closeModal() { document.getElementById('descModal').classList.remove('active'); }
-    function addFromModal() { addToCart(currentId); closeModal(); }
+function openDetails(id){
+const p=products.find(x=>x.id===id);
+if(!p) return;
 
-    function addToCart(id) {
-        const q = parseInt(document.getElementById(`q-${id}`)?.innerText || 1);
-        const p = products.find(x => x.id === id);
-        const ex = cart.find(x => x.id === id);
-        if(ex) ex.qty += q; else cart.push({...p, qty: q});
-        updateCart();
-        toggleCart(true);
-    }
+currentId=id;
+document.getElementById('modalImg').src=p.img;
+document.getElementById('modalTitle').innerText=p.name;
+document.getElementById('modalDesc').innerText=p.desc;
+document.getElementById('modalPrice').innerText='Bs. '+p.price.toFixed(2);
+document.getElementById('descModal').classList.add('active');
+}
 
-    function updateCart() {
-        const l = document.getElementById('cartItems');
-        let t = 0;
-        l.innerHTML = cart.map((i, idx) => {
-            t += i.price * i.qty;
-            return `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:0.8rem; border-bottom:1px solid #f5f5f5; padding-bottom:8px;">
-                <div><strong>${i.name}</strong><br>${i.qty} x Bs.${i.price}</div>
-                <i class="fa-solid fa-trash" style="color:#ccc;" onclick="rm(${idx})"></i>
-            </div>`;
-        }).join('');
-        document.getElementById('cartCount').innerText = cart.reduce((a, b) => a + b.qty, 0);
-        document.getElementById('cartTotal').innerText = 'Bs. ' + t.toFixed(2);
-        localStorage.setItem('cart_ladelicia', JSON.stringify(cart));
-    }
+function closeModal(){
+document.getElementById('descModal').classList.remove('active');
+}
 
-    function rm(idx) { cart.splice(idx,1); updateCart(); }
-    function toggleCart(o=null) { 
-        const p = document.getElementById('cartPanel');
-        if(o===true) p.classList.add('active'); else if(o===false) p.classList.remove('active'); else p.classList.toggle('active');
-    }
+function addFromModal(){
+if(currentId) addToCart(currentId);
+closeModal();
+}
 
-    function showPage(id) {
-        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        window.scrollTo(0,0);
-    }
+function addToCart(id){
+const el=document.getElementById(`q-${id}`);
+const qty=parseInt(el?.innerText)||1;
 
-    function filterCat(c, b) {
-        document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        render(c === 'Todos' ? products : products.filter(p => p.cat === c));
-    }
+const p=products.find(x=>x.id===id);
+if(!p) return;
 
-    function checkout() {
-        if(!cart.length) return;
-        let msg = "*PEDIDO - LA DELICIA*%0A";
-        cart.forEach(i => msg += `• ${i.qty} ${i.name} (Bs. ${i.qty*i.price})%0A`);
-        window.open(`https://wa.me/59176806191?text=${msg}`);
-    }
+const ex=cart.find(x=>x.id===id);
+if(ex) ex.qty+=qty;
+else cart.push({...p,qty});
 
-    render(products);
-    updateCart(); 
+updateCart();
+toggleCart(true);
+}
+
+function updateCart(){
+const list=document.getElementById('cartItems');
+if(!list) return;
+
+let total=0;
+
+list.innerHTML=cart.map((i,idx)=>{
+total+=i.price*i.qty;
+
+return `
+<div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+<div><strong>${i.name}</strong><br>${i.qty} x Bs.${i.price}</div>
+<i class="fa-solid fa-trash" onclick="rm(${idx})"></i>
+</div>`;
+}).join('');
+
+document.getElementById('cartCount').innerText=cart.reduce((a,b)=>a+b.qty,0);
+document.getElementById('cartTotal').innerText='Bs. '+total.toFixed(2);
+
+localStorage.setItem('cart_ladelicia',JSON.stringify(cart));
+}
+
+function rm(i){
+cart.splice(i,1);
+updateCart();
+}
+
+function toggleCart(o=null){
+const p=document.getElementById('cartPanel');
+if(!p) return;
+
+if(o===true)p.classList.add('active');
+else if(o===false)p.classList.remove('active');
+else p.classList.toggle('active');
+}
+
+function showPage(id){
+document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+document.getElementById(id)?.classList.add('active');
+window.scrollTo(0,0);
+}
+
+function filterCat(c,b){
+document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));
+b.classList.add('active');
+
+render(c==='Todos'?products:products.filter(p=>p.cat===c));
+}
+
+function checkout(){
+if(!cart.length) return;
+
+let msg="*PEDIDO - LA DELICIA*\n\n";
+
+cart.forEach(i=>{
+msg+=`• ${i.qty} ${i.name} - Bs. ${i.qty*i.price}\n`;
+});
+
+const url="https://wa.me/59176806191?text="+encodeURIComponent(msg);
+window.open(url,'_blank');
+}
+
+render(products);
+updateCart();
 </script>
 </body>
 </html>
